@@ -1,0 +1,33 @@
+{
+  "name": "@lakaflibrairies/notif",
+  "version": "1.0.0",
+  "description": "Small library to manage events streams for nodejs applications.",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakaflibrairies/notif.git"
+  },
+  "keywords": [
+    "lakaflibrairies",
+    "js",
+    "state-management",
+    "reactive",
+    "web",
+    "event-stream",
+    "event-source"
+  ],
+  "author": "Vaneck KAFFO(LaKaf Librairies)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lakaflibrairies/notif/issues"
+  },
+  "homepage": "https://github.com/lakaflibrairies/notif#readme",
+  "devDependencies": {
+    "jest": "^29.3.1"
+  },
+  "dependencies": {
+    "@lakaflibrairies/state-reactive": "^1.2.2"
+  }
+}
