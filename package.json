@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/lakaflibrairies/notif#readme",
   "devDependencies": {
+    "@types/express": "^4.17.15",
     "jest": "^29.3.1"
   },
   "dependencies": {
