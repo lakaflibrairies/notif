@@ -1,11 +1,23 @@
 import http from "http";
 import https from "https";
 import type { Express } from "express";
-import {
-  InitialConfig,
-  ListenAction,
-  Store,
-} from "@lakaflibrairies/state-reactive";
+import { InitialConfig, Store } from "@lakaflibrairies/state-reactive";
+
+/**
+ * @description
+ * config parameter contains basic configuration of notification server.
+ * It'a an object containing 4 keys
+ * - eventPath: it's the path that notification server will use on the starting
+ * - requireAuth: it's not actually used but a default value is provided.
+ * - keyLength: represents the length of client id.
+ * - timeout: represents the time in second from which the client will be disconnected.
+ */
+type ConfigType = {
+  eventPath: string;
+  requireAuth?: boolean;
+  keyLength?: number;
+  timeout: number;
+};
 
 export type ClientConfig = {
   id: string;
@@ -134,10 +146,7 @@ export declare class NotificationServer {
   private stores: Store<any>;
   private uses: Function[];
 
-  constructor(
-    router: EventRouter,
-    config?: { eventPath: string; requireAuth?: boolean; keyLength?: number }
-  );
+  constructor(router: EventRouter, config?: ConfigType);
 
   private loginClient(req: Req): void;
   private logoutClient(req: Req, res: Res): void;
