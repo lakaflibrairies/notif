@@ -16,6 +16,7 @@ function NotificationServer(router, config = null) {
     eventPath = "notifications",
     requireAuth = false,
     keyLength = 10,
+    timeout = 10, // in ms : milliseconds
   } = config || {};
 
   if (
@@ -37,6 +38,7 @@ function NotificationServer(router, config = null) {
     throw new Error("keyLength must be an integer greater than 9.");
   }
 
+  const timer = null;
   const { emits, listens, run } = router.journal();
   const initialState = {
     clients: [],
@@ -75,6 +77,20 @@ function NotificationServer(router, config = null) {
         state.clients = [];
         return state;
       },
+      logoutClient(state, clientId) {
+        const clientIndex = state.clients.findIndex(
+          (client) => client.id === clientId
+        );
+        state.clients[clientIndex].status = "registered";
+        return state;
+      },
+      loginClient(state, clientId) {
+        const clientIndex = state.clients.findIndex(
+          (client) => client.id === clientId
+        );
+        state.clients[clientIndex].status = "online";
+        return state;
+      },
     },
     actions: {
       saveClient({ commit }, client) {
@@ -98,6 +114,18 @@ function NotificationServer(router, config = null) {
       clean({ commit }) {
         return new Promise((resolve, reject) => {
           commit("clean");
+          resolve();
+        });
+      },
+      logoutClient({ commit }, clientId) {
+        return new Promise((resolve, reject) => {
+          commit("logoutClient", clientId);
+          resolve();
+        });
+      },
+      loginClient({ commit }, clientId) {
+        return new Promise((resolve, reject) => {
+          commit("loginClient", clientId);
           resolve();
         });
       },
@@ -152,6 +180,26 @@ function NotificationServer(router, config = null) {
 
   const next = (scope = "") => {
     localStore.emit(scope + "next");
+  };
+
+  const loginClient = (req) => {
+    const { clientId } = req.infrastructure.reserved;
+    localStore.dispatch("loginClient", clientId);
+  };
+
+  const logoutClient = (req, res) => {
+    const { clientId } = req.infrastructure.reserved;
+    localStore.dispatch("logoutClient", clientId).then(() => {
+      res.closeConnection();
+    });
+  };
+
+  const startTimer = (req, res) => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    timer = setTimeout(() => logoutClient(req, res), timeout * 1000);
   };
 
   const messageController = async (req, res) => {
@@ -242,6 +290,8 @@ function NotificationServer(router, config = null) {
       });
       res.end();
       return;
+    } else {
+      loginClient(req);
     }
 
     req.infrastructure = { reserved: { clientId: client } };
@@ -281,6 +331,12 @@ function NotificationServer(router, config = null) {
     }
 
     typeof run === "function" && run(req, res, { emitAction: localStore.emit });
+
+    startTimer(req, res);
+
+    localStore.listenAction("restart-timeout", () => {
+      startTimer(req, res);
+    });
   };
 
   const use = (cb) => {
@@ -446,7 +502,6 @@ function EventRouter() {
           const {
             clientId,
             clientType = "unknown-client",
-            timeInterval = 5000,
           } = req.infrastructure.payload;
 
           if (
@@ -471,6 +526,30 @@ function EventRouter() {
           res.sendSuccessResponse(clientId);
         },
       ],
+      "hi": [
+        (req, res, { emitAction }) => {
+          const {
+            clientId,
+            clientType = "unknown-client",
+          } = req.infrastructure.payload;
+
+          if (
+            !clientId ||
+            ![
+              "website",
+              "web-app",
+              "mobile-app",
+              "desktop-app",
+              "client-test",
+            ].includes(clientType)
+          ) {
+            return res.sendErrorResponse("DATA-ERROR", "Invalid data.");
+          }
+
+          emitAction("restart-timeout");
+          res.sendSuccessResponse("Done");
+        }
+      ]
     },
   };
 
@@ -487,7 +566,7 @@ function EventRouter() {
   };
 
   const listen = (action, ...handlers) => {
-    const verifyHandlersType = handlers.map(h => typeof h === "function");
+    const verifyHandlersType = handlers.map((h) => typeof h === "function");
 
     if (verifyHandlersType.includes(false)) {
       throw new Error("Handler must be a handler function.");
@@ -502,12 +581,12 @@ function EventRouter() {
   };
 
   const emit = (action, ...handlers) => {
-    const verifyHandlersType = handlers.map(h => typeof h === "function");
+    const verifyHandlersType = handlers.map((h) => typeof h === "function");
 
     if (verifyHandlersType.includes(false)) {
       throw new Error("Handler must be a handler function.");
     }
-    
+
     journal.emits[action] = handlers;
     return {
       listen,
