@@ -38,7 +38,7 @@ function NotificationServer(router, config = null) {
     throw new Error("keyLength must be an integer greater than 9.");
   }
 
-  const timer = null;
+  let timer = null;
   const { emits, listens, run } = router.journal();
   const initialState = {
     clients: [],
@@ -281,6 +281,8 @@ function NotificationServer(router, config = null) {
       return;
     }
 
+    req.infrastructure = { reserved: { clientId: client } };
+
     const findClient = localStore.snapshot.clients.filter(
       (c) => c.id === client
     )[0];
@@ -293,8 +295,6 @@ function NotificationServer(router, config = null) {
     } else {
       loginClient(req);
     }
-
-    req.infrastructure = { reserved: { clientId: client } };
 
     const emittedEvents = Object.keys(emits);
 
@@ -499,10 +499,8 @@ function EventRouter() {
     listens: {
       "reconnection-required": [
         (req, res, { emitAction }) => {
-          const {
-            clientId,
-            clientType = "unknown-client",
-          } = req.infrastructure.payload;
+          const { clientId, clientType = "unknown-client" } =
+            req.infrastructure.payload;
 
           if (
             !clientId ||
@@ -520,18 +518,15 @@ function EventRouter() {
             clientId,
             newValues: {
               clientType,
-              timeInterval,
             },
           });
           res.sendSuccessResponse(clientId);
         },
       ],
-      "hi": [
+      hi: [
         (req, res, { emitAction }) => {
-          const {
-            clientId,
-            clientType = "unknown-client",
-          } = req.infrastructure.payload;
+          const { clientId, clientType = "unknown-client" } =
+            req.infrastructure.reserved;
 
           if (
             !clientId ||
@@ -548,8 +543,8 @@ function EventRouter() {
 
           emitAction("restart-timeout");
           res.sendSuccessResponse("Done");
-        }
-      ]
+        },
+      ],
     },
   };
 
