@@ -18,7 +18,7 @@ export type ClientConfig = {
     | "desktop-app"
     | "client-test"
     | "unknown-client";
-  status: "registered" | "unknown-client";
+  status: "registered" | "unknown-client" | "online";
   timestampRegistration: number;
   delay: number | null;
 };
@@ -122,6 +122,8 @@ export type ApplicationCallbackFunction = {
 };
 
 export declare class NotificationServer {
+  private timeout: number;
+  private timer: NodeJS.Timeout;
   private eventPath: string;
   private requireAuth: boolean;
   private keyLength: number;
@@ -137,6 +139,9 @@ export declare class NotificationServer {
     config?: { eventPath: string; requireAuth?: boolean; keyLength?: number }
   );
 
+  private loginClient(req: Req): void;
+  private logoutClient(req: Req, res: Res): void;
+  private startTimer(req: Req, res: Res): void;
   private generateUniqueKey(): string;
   private createStore<T>(name: string, config: InitialConfig<T>): Store<T>;
   private getStores(): Record<string, Store<any>>;
