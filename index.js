@@ -262,9 +262,6 @@ function NotificationServer(router, config = null) {
 
     res.statusCode = 200;
 
-    // Event test
-    res.sendNotification("hello", { message: "hi" });
-
     if (client === "default") {
       const clientId = generateUniqueKey();
       await localStore.dispatch("saveClient", {

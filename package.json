@@ -1,6 +1,6 @@
 {
   "name": "@lakaflibrairies/notif",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Small library to manage events streams for nodejs applications.",
   "scripts": {
     "test": "jest"
