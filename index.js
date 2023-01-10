@@ -368,6 +368,12 @@ function NotificationServer(router, config = null) {
       res.end();
     };
 
+    res.serverConfig = {
+      keyLength,
+      timeout,
+      computedPath,
+    };
+
     if (typeof useCallback === "function") {
       useCallback(use);
     }
@@ -520,7 +526,7 @@ function EventRouter() {
               clientType,
             },
           });
-          res.sendSuccessResponse(clientId);
+          res.sendSuccessResponse({ clientId, ...res.serverConfig });
         },
       ],
       hi: [

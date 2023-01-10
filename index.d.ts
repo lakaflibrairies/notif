@@ -57,6 +57,7 @@ export type Res = ServerResponse & {
   sendErrorResponse: { (code: string, message: string): void };
   sendNotification: { (notificationName: string, payload: any): void };
   closeConnection: { (): void };
+  serverConfig: { keyLength: number; timeout: number; computedPath: string };
 };
 
 export type Next = {
