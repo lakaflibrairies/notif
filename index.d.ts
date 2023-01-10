@@ -16,7 +16,7 @@ type ConfigType = {
   eventPath: string;
   requireAuth?: boolean;
   keyLength?: number;
-  timeout: number;
+  timeout?: number;
 };
 
 export type ClientConfig = {
