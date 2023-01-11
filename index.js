@@ -262,9 +262,6 @@ function NotificationServer(router, config = null) {
 
     res.statusCode = 200;
 
-    // Event test
-    res.sendNotification("hello", { message: "hi" });
-
     if (client === "default") {
       const clientId = generateUniqueKey();
       await localStore.dispatch("saveClient", {
@@ -366,6 +363,12 @@ function NotificationServer(router, config = null) {
 
     res.closeConnection = () => {
       res.end();
+    };
+
+    res.serverConfig = {
+      keyLength,
+      timeout,
+      computedPath,
     };
 
     if (typeof useCallback === "function") {
@@ -520,7 +523,7 @@ function EventRouter() {
               clientType,
             },
           });
-          res.sendSuccessResponse(clientId);
+          res.sendSuccessResponse({ clientId, ...res.serverConfig });
         },
       ],
       hi: [
